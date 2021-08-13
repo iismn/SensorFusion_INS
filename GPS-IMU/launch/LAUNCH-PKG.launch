@@ -1,0 +1,6 @@
+<launch>
+    <arg name="project" default="research_osm_localization"/>
+
+    <node pkg="$(arg project)" type="$(arg project)_LocalMapOptimization"      name="$(arg project)_LocalMapOptimization"       output="screen"     respawn="true"/>
+
+</launch>
