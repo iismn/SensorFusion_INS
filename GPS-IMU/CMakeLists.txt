@@ -19,37 +19,12 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   visualization_msgs
 
-  # PCL LIBRARIES
-  pcl_conversions
-
-  # CUDA - P2P REG
-  # ndt_gpu
-  fast_gicp
 )
 
 find_package(OpenMP REQUIRED)
 find_package(PCL REQUIRED QUIET)
 find_package(OpenCV REQUIRED QUIET)
 find_package(GTSAM REQUIRED QUIET)
-# CUDA #############################################
-find_package(CUDA)
-include_directories(${CUDA_INCLUDE_DIRS})
-link_directories(${CUDA_LIBRARY_DIRS})
-add_definitions(-DCUDA_FOUND)
-add_definitions(-DUSE_VGICP_CUDA)
-
-
-add_message_files(
-  DIRECTORY msg
-  FILES
-  cloud_info.msg
-)
-
-add_service_files(
-  DIRECTORY srv
-  FILES
-  save_map.srv
-)
 
 generate_messages(
   DEPENDENCIES
@@ -95,8 +70,8 @@ link_directories(
 ###########
 
 # Mapping Optimization
-add_executable(${PROJECT_NAME}_LocalMapOptimization src/LocalMAP_OSM_Localization.cpp)
-add_dependencies(${PROJECT_NAME}_LocalMapOptimization ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
-target_compile_options(${PROJECT_NAME}_LocalMapOptimization PRIVATE ${OpenMP_CXX_FLAGS})
-target_include_directories(${PROJECT_NAME}_LocalMapOptimization PUBLIC ${CUDA_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME}_LocalMapOptimization ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${OpenMP_CXX_FLAGS} gtsam fast_gicp)
+add_executable(${PROJECT_NAME}_SensorFusion_GPSINS src/SensorFusion_GPSINS.cpp)
+add_dependencies(${PROJECT_NAME}_SensorFusion_GPSINS ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+target_compile_options(${PROJECT_NAME}_SensorFusion_GPSINS PRIVATE ${OpenMP_CXX_FLAGS})
+target_include_directories(${PROJECT_NAME}_SensorFusion_GPSINS PUBLIC ${CUDA_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME}_SensorFusion_GPSINS ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${OpenMP_CXX_FLAGS} gtsam fast_gicp)

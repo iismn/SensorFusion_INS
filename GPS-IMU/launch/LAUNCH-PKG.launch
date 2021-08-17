@@ -1,6 +1,6 @@
 <launch>
-    <arg name="project" default="research_osm_localization"/>
+    <arg name="project" default="sensor_fusion_smoothing"/>
 
-    <node pkg="$(arg project)" type="$(arg project)_LocalMapOptimization"      name="$(arg project)_LocalMapOptimization"       output="screen"     respawn="true"/>
+    <node pkg="$(arg project)" type="$(arg project)_SensorFusion_GPSINS"      name="$(arg project)_SensorFusion_GPSINS"       output="screen"     respawn="true"/>
 
 </launch>
