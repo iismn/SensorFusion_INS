@@ -31,6 +31,7 @@ class SensorFusion_GPSINS : public ParamServer
 
 public:
     std::mutex mtx;
+
     // GTSAM OPTIMIZER
     NonlinearFactorGraph gtSAMgraph;
     Values initialEstimate;
@@ -64,8 +65,7 @@ public:
 
     gtsam::Pose3 gps2IMU = gtsam::Pose3(gtsam::Rot3(1, 0, 0, 0), gtsam::Point3(-extTrans.x(), -extTrans.y(), -extTrans.z()));
     gtsam::Pose3 IMU2gps = gtsam::Pose3(gtsam::Rot3(1, 0, 0, 0), gtsam::Point3(extTrans.x(), extTrans.y(), extTrans.z()));
-
-
+    gtsam::Pose3 GPS_Pose3;
 
     // DATA CONATINER
     std::deque<nav_msgs::Odometry> gpsQueue;
@@ -74,6 +74,7 @@ public:
     std::deque<sensor_msgs::Imu> imuQueImu;
 
     // Pre-INTG PARAM
+    bool gpsInitialized = false;
     bool systemInitialized = false;
     bool doneFirstOpt = false;
     double lastImuT_imu = -1;
@@ -81,7 +82,7 @@ public:
     double utm_x_init = 0;
     double utm_y_init = 0;
     double utm_z_init = 0;
-    const double delta_t = 0;
+
     int key = 1;
 
     double UPDATED_qX = 0;
@@ -89,41 +90,50 @@ public:
     double UPDATED_qZ = 0;
     double UPDATED_qW = 0;
 
+    double currentCorrectionTime_Prev = 0;
+
     // ROS
     nav_msgs::Odometry  INS_Odometry;
+    nav_msgs::Odometry  GPS_Odometry;
+    nav_msgs::Odometry  INT_Odometry;
     nav_msgs::Path      INS_Path;
     nav_msgs::Path      GPS_Path;
+
     ros::Subscriber subIMU;
     ros::Subscriber subGPS;
     ros::Publisher  pubINS;
-    ros::Publisher  pubPath;
+    ros::Publisher  pubGPS;
+    ros::Publisher  pubGST;
+    ros::Publisher  pubINSPath;
     ros::Publisher  pubGTPath;
 
     // --------------------------------------------------------------------------------------------------------------------------------------------
     SensorFusion_GPSINS(){
 
-        subIMU =  nh.subscribe<sensor_msgs::Imu>("imu/data", 2000, &SensorFusion_GPSINS::imuHandler, this, ros::TransportHints().tcpNoDelay());
-        subGPS =  nh.subscribe<sensor_msgs::NavSatFix> ("ublox/fix", 200, &SensorFusion_GPSINS::gpsHandler, this, ros::TransportHints().tcpNoDelay());
+        subIMU =  nh.subscribe<sensor_msgs::Imu>(IMU_topic, 2000, &SensorFusion_GPSINS::imuHandler, this, ros::TransportHints().tcpNoDelay());
+        subGPS =  nh.subscribe<sensor_msgs::NavSatFix> (GPS_topic, 200, &SensorFusion_GPSINS::gpsHandler, this, ros::TransportHints().tcpNoDelay());
 
-        pubINS =  nh.advertise<nav_msgs::Odometry>("ins/odom", 1);
-        pubPath = nh.advertise<nav_msgs::Path>("ins/fused_path", 1);
-        pubGTPath = nh.advertise<nav_msgs::Path>("ins/gps_path", 1);
-        // VGICP-SAM : SHARED PTR BOOST
-        boost::shared_ptr<gtsam::PreintegrationParams> p = gtsam::PreintegrationParams::MakeSharedU(imuGravity);
-        p->accelerometerCovariance  = gtsam::Matrix33::Identity(3,3) * pow(imuAccNoise, 2); // acc white noise in continuous
-        p->gyroscopeCovariance      = gtsam::Matrix33::Identity(3,3) * pow(imuGyrNoise, 2); // gyro white noise in continuous
-        p->integrationCovariance    = gtsam::Matrix33::Identity(3,3) * pow(1e-4, 2); // error committed in integrating position from velocities
-        gtsam::imuBias::ConstantBias prior_imu_bias((gtsam::Vector(6) << 0, 0, 0, 0, 0, 0).finished());; // assume zero initial bias
+        pubINS =  nh.advertise<nav_msgs::Odometry>("ublox/ins/odom", 1);
+        pubGPS = nh.advertise<nav_msgs::Odometry>("ublox/fix/odom", 1);
+        pubGST = nh.advertise<nav_msgs::Odometry>("ublox/fix/init", 1);
+        pubINSPath = nh.advertise<nav_msgs::Path>("ublox/ins/fused_path", 1);
+        pubGTPath = nh.advertise<nav_msgs::Path>("ublox/ins/gps_path", 1);
+
+        boost::shared_ptr<gtsam::PreintegrationParams> preIntgParam = gtsam::PreintegrationParams::MakeSharedU(imuGravity);
+        preIntgParam->accelerometerCovariance  = gtsam::Matrix33::Identity(3,3) * pow(imuAccNoise, 2);    // ACC white noise
+        preIntgParam->gyroscopeCovariance      = gtsam::Matrix33::Identity(3,3) * pow(imuGyrNoise, 2);    // Gyro white noise
+        preIntgParam->integrationCovariance    = gtsam::Matrix33::Identity(3,3) * pow(1e-4, 2);           // ERR c- Vel Pos Estimation
+        gtsam::imuBias::ConstantBias prior_imu_bias((gtsam::Vector(6) << 0, 0, 0, 0, 0, 0).finished());;  // Initial Bias
 
         priorPoseNoise  = gtsam::noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2).finished()); // rad,rad,rad,m, m, m
-        priorVelNoise   = gtsam::noiseModel::Isotropic::Sigma(3, 1e4); // m/s
-        priorBiasNoise  = gtsam::noiseModel::Isotropic::Sigma(6, 1e-3); // 1e-2 ~ 1e-3 seems to be good
+        priorVelNoise   = gtsam::noiseModel::Isotropic::Sigma(3, 1e4);                                                              // m/s
+        priorBiasNoise  = gtsam::noiseModel::Isotropic::Sigma(6, 1e-3);                                                             // 1e-2 ~ 1e-3
         correctionNoise_Nominal = gtsam::noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.05, 0.05, 0.05, 0.1, 0.1, 0.1).finished()); // rad,rad,rad,m, m, m
-        correctionNoise_Reset = gtsam::noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 1, 1, 1, 1, 1, 1).finished()); // rad,rad,rad,m, m, m
+        correctionNoise_Reset = gtsam::noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 1, 1, 1, 1, 1, 1).finished());                  // rad,rad,rad,m, m, m
         noiseModelBetweenBias = (gtsam::Vector(6) << imuAccBiasN, imuAccBiasN, imuAccBiasN, imuGyrBiasN, imuGyrBiasN, imuGyrBiasN).finished();
 
-        imuIntegratorImu_ = new gtsam::PreintegratedImuMeasurements(p, prior_imu_bias); // setting up the IMU integration for IMU message thread
-        imuIntegratorOpt_ = new gtsam::PreintegratedImuMeasurements(p, prior_imu_bias); // setting up the IMU integration for optimization
+        imuIntegratorImu_ = new gtsam::PreintegratedImuMeasurements(preIntgParam, prior_imu_bias); // IMU Message Thread
+        imuIntegratorOpt_ = new gtsam::PreintegratedImuMeasurements(preIntgParam, prior_imu_bias); // IMU Optimization Thread
     }
     // --------------------------------------------------------------------------------------------------------------------------------------------
     void imuHandler(const sensor_msgs::Imu::ConstPtr& IMU_RAW){
@@ -145,7 +155,7 @@ public:
             return;
 
         double imuTime = ROS_TIME(&IMU_CURRENT);
-        double dt = (lastImuT_imu < 0) ? (1.0 / 400.0) : (imuTime - lastImuT_imu);
+        double dt = (lastImuT_imu < 0) ? (1.0 / IMU_HZ) : (imuTime - lastImuT_imu);
         lastImuT_imu = imuTime;
 
         // A-2. GTSAM INTG Single IMU State
@@ -156,7 +166,7 @@ public:
         gtsam::NavState ODOM_Now = imuIntegratorImu_->predict(ODOM_Prv, BIAS_Prv);
 
         gtsam::Pose3 IMU_Pose3 = gtsam::Pose3(ODOM_Now.quaternion(), ODOM_Now.position());
-        gtsam::Pose3 GPS_Pose3 = IMU_Pose3.compose(gps2IMU);
+        GPS_Pose3 = IMU_Pose3.compose(gps2IMU);
         // A-4. ROS Publish GTSAM NAV STATE
         INS_Odometry.header.stamp = IMU_CURRENT.header.stamp;
         INS_Odometry.header.frame_id = odometryFrame;
@@ -177,7 +187,7 @@ public:
         INS_Odometry.twist.twist.angular.y = IMU_CURRENT.angular_velocity.y + BIAS_Prv.gyroscope().y();
         INS_Odometry.twist.twist.angular.z = IMU_CURRENT.angular_velocity.z + BIAS_Prv.gyroscope().z();
 
-        pubINS.publish(INS_Odometry);
+        // pubINS.publish(INS_Odometry);
 
 
         INS_Path.header.stamp = IMU_CURRENT.header.stamp;
@@ -196,7 +206,7 @@ public:
 
         INS_Path.poses.push_back(pose_stamped);
 
-        pubPath.publish(INS_Path);
+        pubINSPath.publish(INS_Path);
 
     }
     // --------------------------------------------------------------------------------------------------------------------------------------------
@@ -208,6 +218,9 @@ public:
         if (imuQueOpt.empty())
             return;
 
+
+
+
         // B-A. CONVERT LATLONG to UTM
         double utm_x = 0;
         double utm_y = 0;
@@ -217,35 +230,113 @@ public:
         // B-1. COMPILE LiDAR Odom
         float p_x = utm_x;
         float p_y = utm_y;
-        float p_z = GPS_RAW->altitude;
+        float p_z = GPS_RAW->altitude*ALT_RATIO;
         float r_x = UPDATED_qX;
         float r_y = UPDATED_qY;
         float r_z = UPDATED_qZ;
         float r_w = UPDATED_qW;
 
 
+        if (gpsInitialized == false){
+          utm_x_init = p_x;
+          utm_y_init = p_y;
+          utm_z_init = p_z;
+          p_x = p_x - utm_x_init;
+          p_y = p_y - utm_y_init;
+          p_z = p_z - utm_z_init;
+          gpsInitialized = true;
+        }else{
+          p_x = p_x - utm_x_init;
+          p_y = p_y - utm_y_init;
+          p_z = p_z - utm_z_init;
+        }
 
-        // gtsam::Vector Vector3(3);
-        // Vector3 << max(GPS_RAW->position_covariance[0], 1.0f), max(GPS_RAW->position_covariance[4], 1.0f), max(GPS_RAW->position_covariance[8], 1.0f);
-        // noiseModel::Diagonal::shared_ptr gps_noise = noiseModel::Diagonal::Variances(Vector3);
-        // gtsam::GPSFactor gps_factor(cloudKeyPoses3D->size(), gtsam::Point3(p_x, p_y, p_z), gps_noise);
-        // gtSAMgraph.add(gps_factor);
+
+        GPS_Path.header.stamp = GPS_RAW->header.stamp;
+        GPS_Path.header.frame_id = odometryFrame;
+
+        geometry_msgs::PoseStamped pose_stamped;
+        pose_stamped.header.stamp = GPS_RAW->header.stamp;
+        pose_stamped.header.frame_id = odometryFrame;
+        pose_stamped.pose.position.x = p_x;
+        pose_stamped.pose.position.y = p_y;
+        pose_stamped.pose.position.z = p_z;
+        pose_stamped.pose.orientation.x = r_x;
+        pose_stamped.pose.orientation.y = r_y;
+        pose_stamped.pose.orientation.z = r_z;
+        pose_stamped.pose.orientation.w = r_w;
+
+        GPS_Path.poses.push_back(pose_stamped);
+
+        pubGTPath.publish(GPS_Path);
+
+        // A-4. ROS Publish GTSAM NAV STATE
+        GPS_Odometry.header.stamp = GPS_RAW->header.stamp;
+        GPS_Odometry.header.frame_id = "odom";
+
+        GPS_Odometry.pose.pose.position.x = p_x;
+        GPS_Odometry.pose.pose.position.y = p_y;
+        GPS_Odometry.pose.pose.position.z = p_z;
+        GPS_Odometry.pose.pose.orientation.x = r_x;
+        GPS_Odometry.pose.pose.orientation.y = r_y;
+        GPS_Odometry.pose.pose.orientation.z = r_z;
+        GPS_Odometry.pose.pose.orientation.w = r_w;
+
+        // A-4B. ROS Publish INIT START POINT UTM
+        INT_Odometry.header.stamp = GPS_RAW->header.stamp;
+        INT_Odometry.header.frame_id = "odom";
+
+        INT_Odometry.pose.pose.position.x = utm_x_init;
+        INT_Odometry.pose.pose.position.y = utm_y_init;
+        INT_Odometry.pose.pose.position.z = utm_z_init;
+
+        // Use ENU covariance to build XYZRPY covariance
+        boost::array<double, 36> covariance = {{
+          GPS_RAW->position_covariance[0],
+          GPS_RAW->position_covariance[1],
+          GPS_RAW->position_covariance[2],
+          0, 0, 0,
+          GPS_RAW->position_covariance[3],
+          GPS_RAW->position_covariance[4],
+          GPS_RAW->position_covariance[5],
+          0, 0, 0,
+          GPS_RAW->position_covariance[6],
+          GPS_RAW->position_covariance[7],
+          GPS_RAW->position_covariance[8],
+          0, 0, 0,
+          0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0
+        }};
+
+        GPS_Odometry.pose.covariance = covariance;
+
+        GPS_Odometry.twist.twist.linear.x = 0;
+        GPS_Odometry.twist.twist.linear.y = 0;
+        GPS_Odometry.twist.twist.linear.z = 0;
+        GPS_Odometry.twist.twist.angular.x = 0;
+        GPS_Odometry.twist.twist.angular.y = 0;
+        GPS_Odometry.twist.twist.angular.z = 0;
+
+        pubGPS.publish(GPS_Odometry);
+        pubGST.publish(INT_Odometry);
+
+
 
         // B-!. Optimize Fail -> RESET GTSAM Optimizer
         if (systemInitialized == false)
-        {
+        {   
+            if (IMU_HZ <= 100){
+                ROS_WARN("SAFETY FAILURE : Low IMU Hz / [AT LEAST 300]");
+                return;
+            }
             resetOptimization();
+            currentCorrectionTime_Prev = currentCorrectionTime;
 
-            utm_x_init = p_x;
-            utm_y_init = p_y;
-            utm_z_init = p_z;
-            p_x = p_x - utm_x_init;
-            p_y = p_y - utm_y_init;
-            p_z = p_z - utm_z_init;
             // pop old IMU message
             while (!imuQueOpt.empty())
             {
-                if (ROS_TIME(&imuQueOpt.front()) < currentCorrectionTime - delta_t)
+                if (ROS_TIME(&imuQueOpt.front()) < currentCorrectionTime - GPS_HZ)
                 {
                     lastImuT_opt = ROS_TIME(&imuQueOpt.front());
                     imuQueOpt.pop_front();
@@ -284,17 +375,16 @@ public:
             return;
         }
         else{
-            p_x = p_x - utm_x_init;
-            p_y = p_y - utm_y_init;
-            p_z = p_z - utm_z_init;
-            cout << "POSE3 : " << p_x << " " << p_y << " " << p_z << endl;
-            gpsPose = gtsam::Pose3(gtsam::Rot3::Quaternion(r_w, r_x, r_y, r_z), gtsam::Point3(p_x, p_y, p_z));
+
+          if (currentCorrectionTime-0.2 > currentCorrectionTime_Prev && FILTER_UNSYNC == 1)
+            return;
+
+
+          // cout.precision(15);
+          // cout << currentCorrectionTime << endl;
+          // cout << "POSE3 : " << p_x << " " << p_y << " " << p_z << endl;
+          gpsPose = gtsam::Pose3(gtsam::Rot3::Quaternion(r_w, r_x, r_y, r_z), gtsam::Point3(p_x, p_y, p_z));
         }
-
-
-        // bool degenerate = (int)INS_Odometry->pose.covariance[0] == 1 ? true : false;
-        // gtsam::Pose3 gpsPose = gtsam::Pose3(gtsam::Rot3::Quaternion(r_w, r_x, r_y, r_z), gtsam::Point3(p_x, p_y, p_z));
-
 
         // B-2. RESET Graph : Optimize Performance
         if (key == 100)
@@ -332,9 +422,9 @@ public:
             // pop and integrate imu data that is between two optimizations
             sensor_msgs::Imu *thisImu = &imuQueOpt.front();
             double imuTime = ROS_TIME(thisImu);
-            if (imuTime < currentCorrectionTime - delta_t)
+            if (imuTime < currentCorrectionTime - GPS_HZ)
             {
-                double dt = (lastImuT_opt < 0) ? (1.0 / 400.0) : (imuTime - lastImuT_opt);
+                double dt = (lastImuT_opt < 0) ? (1.0 / IMU_HZ) : (imuTime - lastImuT_opt);
                 imuIntegratorOpt_->integrateMeasurement(
                         gtsam::Vector3(thisImu->linear_acceleration.x, thisImu->linear_acceleration.y, thisImu->linear_acceleration.z),
                         gtsam::Vector3(thisImu->angular_velocity.x,    thisImu->angular_velocity.y,    thisImu->angular_velocity.z), dt);
@@ -358,9 +448,9 @@ public:
         // B-3T. ADD GPS Factor to NonlinearFactorGraph
         gtsam::Vector Vector3(3);
         Vector3 << (float)GPS_RAW->position_covariance[0], (float)GPS_RAW->position_covariance[4], (float)GPS_RAW->position_covariance[8];
-        noiseModel::Diagonal::shared_ptr correctionNoise_GPS = noiseModel::Diagonal::Variances(Vector3);
+        noiseModel::Diagonal::shared_ptr correctionNoise_GPS = noiseModel::Isotropic::Sigmas(Vector3*Covariance_GAIN);
 
-        correctionNoise_GPS->print("GPS Noise:\n");
+        // correctionNoise_GPS->print("GPS Noise:\n");
         gtsam::Pose3 curPose = gpsPose.compose(gps2IMU);
         // gtsam::PriorFactor<gtsam::Pose3> pose_factor(X(key), curPose, correctionNoise_Nominal);
         // graphFactors.add(pose_factor);
@@ -385,7 +475,7 @@ public:
         prevVel_   = result.at<gtsam::Vector3>(V(key));
         prevState_ = gtsam::NavState(prevPose_, prevVel_);
         prevBias_  = result.at<gtsam::imuBias::ConstantBias>(B(key));
-
+        // prevBias_.print("Optimized Noise:\n");
         // Reset the optimization preintegration object.
         imuIntegratorOpt_->resetIntegrationAndSetBias(prevBias_);
 
@@ -402,7 +492,7 @@ public:
         BIAS_Prv  = prevBias_;
         // first pop imu message older than current correction data
         double lastImuQT = -1;
-        while (!imuQueImu.empty() && ROS_TIME(&imuQueImu.front()) < currentCorrectionTime - delta_t)
+        while (!imuQueImu.empty() && ROS_TIME(&imuQueImu.front()) < currentCorrectionTime - GPS_HZ)
         {
             lastImuQT = ROS_TIME(&imuQueImu.front());
             imuQueImu.pop_front();
@@ -417,7 +507,7 @@ public:
             {
                 sensor_msgs::Imu *thisImu = &imuQueImu[i];
                 double imuTime = ROS_TIME(thisImu);
-                double dt = (lastImuQT < 0) ? (1.0 / 400.0) :(imuTime - lastImuQT);
+                double dt = (lastImuQT < 0) ? (1.0 / IMU_HZ) :(imuTime - lastImuQT);
 
                 imuIntegratorImu_->integrateMeasurement(gtsam::Vector3(thisImu->linear_acceleration.x, thisImu->linear_acceleration.y, thisImu->linear_acceleration.z),
                                                         gtsam::Vector3(thisImu->angular_velocity.x,    thisImu->angular_velocity.y,    thisImu->angular_velocity.z), dt);
@@ -429,25 +519,35 @@ public:
         ++key;
         doneFirstOpt = true;
 
+        GPS_Odometry.pose.pose.position.x = GPS_Pose3.translation().x();
+        GPS_Odometry.pose.pose.position.y = GPS_Pose3.translation().y();
+        GPS_Odometry.pose.pose.position.z = GPS_Pose3.translation().z();
+        GPS_Odometry.pose.pose.orientation.x = GPS_Pose3.rotation().toQuaternion().x();
+        GPS_Odometry.pose.pose.orientation.y = GPS_Pose3.rotation().toQuaternion().y();
+        GPS_Odometry.pose.pose.orientation.z = GPS_Pose3.rotation().toQuaternion().z();
+        GPS_Odometry.pose.pose.orientation.w = GPS_Pose3.rotation().toQuaternion().w();
+        pubINS.publish(GPS_Odometry);
 
+        INS_Path.header.stamp = GPS_RAW->header.stamp;
+        INS_Path.header.frame_id = odometryFrame;
 
-        GPS_Path.header.stamp = GPS_RAW->header.stamp;
-        GPS_Path.header.frame_id = odometryFrame;
+        // geometry_msgs::PoseStamped pose_stamped_INS;
+        // pose_stamped_INS.header.stamp = GPS_RAW->header.stamp;
+        // pose_stamped_INS.header.frame_id = odometryFrame;
+        // pose_stamped_INS.pose.position.x = GPS_Pose3.translation().x();
+        // pose_stamped_INS.pose.position.y = GPS_Pose3.translation().y();
+        // pose_stamped_INS.pose.position.z = GPS_Pose3.translation().z();
+        // pose_stamped_INS.pose.orientation.x = GPS_Pose3.rotation().toQuaternion().x();
+        // pose_stamped_INS.pose.orientation.y = GPS_Pose3.rotation().toQuaternion().y();
+        // pose_stamped_INS.pose.orientation.z = GPS_Pose3.rotation().toQuaternion().z();
+        // pose_stamped_INS.pose.orientation.w = GPS_Pose3.rotation().toQuaternion().w();
+        //
+        // INS_Path.poses.push_back(pose_stamped_INS);
+        //
+        // pubINSPath.publish(INS_Path);
 
-        geometry_msgs::PoseStamped pose_stamped;
-        pose_stamped.header.stamp = GPS_RAW->header.stamp;
-        pose_stamped.header.frame_id = odometryFrame;
-        pose_stamped.pose.position.x = p_x;
-        pose_stamped.pose.position.y = p_y;
-        pose_stamped.pose.position.z = p_z;
-        pose_stamped.pose.orientation.x = r_x;
-        pose_stamped.pose.orientation.y = r_y;
-        pose_stamped.pose.orientation.z = r_z;
-        pose_stamped.pose.orientation.w = r_w;
+        currentCorrectionTime_Prev = currentCorrectionTime;
 
-        GPS_Path.poses.push_back(pose_stamped);
-
-        pubGTPath.publish(GPS_Path);
 
     }
     // --------------------------------------------------------------------------------------------------------------------------------------------
@@ -455,7 +555,7 @@ public:
         Eigen::Vector3f vel(velCur.x(), velCur.y(), velCur.z());
         if (vel.norm() > 30)
         {
-            ROS_WARN("Large velocity, reset IMU-preintegration!");
+            ROS_WARN("FAILURE DETECTED : Reset System / [Large Velocity]");
             return true;
         }
 
@@ -463,7 +563,7 @@ public:
         Eigen::Vector3f bg(biasCur.gyroscope().x(), biasCur.gyroscope().y(), biasCur.gyroscope().z());
         if (ba.norm() > 1.0 || bg.norm() > 1.0)
         {
-            ROS_WARN("Large bias, reset IMU-preintegration!");
+            ROS_WARN("FAILURE DETECTED : Reset System / [Large Bias]");
             return true;
         }
 
@@ -495,10 +595,10 @@ public:
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "SensorFusion_GNSS");
+    ros::init(argc, argv, "SensorFusion_GPSINS");
 
     SensorFusion_GPSINS SF;
-    ROS_INFO("\033[1;32m----> GPS-INS FUSION START \033[0m");
+    ROS_INFO("\033[1;32m----> GNSS + INS FUSION START \033[0m");
 
     ros::MultiThreadedSpinner spinner(6);
     spinner.spin();

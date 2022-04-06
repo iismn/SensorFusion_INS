@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>sensor_fusion_smoothing</name>
+  <name>agv_sensor_fusion</name>
   <version>1.0.0</version>
   <description>SENSOR FUSION GPS with IMU</description>
 

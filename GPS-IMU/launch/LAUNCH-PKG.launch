@@ -1,5 +1,8 @@
 <launch>
-    <arg name="project" default="sensor_fusion_smoothing"/>
+    <arg name="project" default="agv_sensor_fusion"/>
+
+    <!-- Parameters -->
+    <rosparam file="$(find agv_sensor_fusion)/config/KITTI_CONFIG.yaml"              command="load" />
 
     <node pkg="$(arg project)" type="$(arg project)_SensorFusion_GPSINS"      name="$(arg project)_SensorFusion_GPSINS"       output="screen"     respawn="true"/>
 
