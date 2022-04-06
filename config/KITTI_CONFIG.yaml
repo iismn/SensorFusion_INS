@@ -1,0 +1,46 @@
+AGV_GPSwINS:
+
+  # ROS Topic Configuration
+  IMU_topic: "imu_correct"                                     # IMU data
+  GPS_topic: "gps/fix"                                          # GPS odometry topic from navsat, see module_navsat.launch file
+  # IMU_topic: "kitti_player/oxts/imu"                                     # IMU data
+  # GPS_topic: "kitti_player/oxts/gps"                                          # GPS odometry topic from navsat, see module_navsat.launch file
+
+  # ROS TF SET
+  lidarFrame: "base_link"
+  baselinkFrame: "base_link"
+  odometryFrame: "odom"
+
+  # IMU SET [Xsense MTI-30]
+  imuAccNoise: 1.2596236087144755e-02
+  imuGyrNoise: 1.0796013414777343e-02
+  imuAccBiasN: 1.5023316483881740e-04
+  imuGyrBiasN: 7.5884170969887886e-05
+
+  imuGravity: 9.80511
+  imuRPYWeight: 0.01
+
+  # EXTRINSIC SET [GPS to IMU]
+  # extrinsicTrans: [0.0, 0.0, -0.1]
+  # extrinsicRot: [1, 0, 0,
+  #                 0, 1, 0,
+  #                 0, 0, 1]
+  # extrinsicRPY: [1, 0, 0,
+  #                 0, 1, 0,
+  #                 0, 0, 1]
+
+  # Extrinsics (lidar -> IMU)
+  extrinsicTrans:  [-8.086759e-01, 3.195559e-01, -7.997231e-01]
+  extrinsicRot: [9.999976e-01, 7.553071e-04, -2.035826e-03,
+                -7.854027e-04, 9.998898e-01, -1.482298e-02,
+                 2.024406e-03, 1.482454e-02, 9.998881e-01]
+  extrinsicRPY: [9.999976e-01, 7.553071e-04, -2.035826e-03,
+                -7.854027e-04, 9.998898e-01, -1.482298e-02,
+                 2.024406e-03, 1.482454e-02, 9.998881e-01]
+
+  # SENSOR SET
+  GPS_HZ : 0
+  IMU_HZ : 100
+  Covariance_GAIN : 10
+  FILTER_UNSYNC : 1
+  ALTITUDE_RATIO : 0.5

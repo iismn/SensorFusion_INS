@@ -1,0 +1,694 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 191
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /links1/TF1
+        - /links1/TF1/Frames1
+        - /Odometry1/Odom GPS1/Shape1
+        - /Point Cloud1
+        - /Point Cloud1/Velodyne1
+        - /Point Cloud1/LIDAR (Top/Deskewed)1
+        - /Mapping1
+      Splitter Ratio: 0.5589519739151001
+    Tree Height: 1204
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz/Tool Properties
+    Expanded: ~
+    Name: Tool Properties
+    Splitter Ratio: 0.5
+Preferences:
+  PromptSaveOnExit: true
+Toolbars:
+  toolButtonStyle: 2
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/TF
+          Enabled: false
+          Frame Timeout: 999
+          Frames:
+            All Enabled: false
+          Marker Scale: 1
+          Name: TF
+          Show Arrows: true
+          Show Axes: true
+          Show Names: true
+          Tree:
+            {}
+          Update Interval: 0
+          Value: false
+        - Class: rviz/Axes
+          Enabled: false
+          Length: 2
+          Name: map
+          Radius: 0.20000000298023224
+          Reference Frame: map
+          Value: false
+        - Class: rviz/Axes
+          Enabled: true
+          Length: 1
+          Name: base_link
+          Radius: 0.10000000149011612
+          Reference Frame: base_link
+          Value: true
+      Enabled: true
+      Name: links
+    - Class: rviz/Group
+      Displays:
+        - Angle Tolerance: 0.10000000149011612
+          Class: rviz/Odometry
+          Covariance:
+            Orientation:
+              Alpha: 0.5
+              Color: 255; 255; 127
+              Color Style: Unique
+              Frame: Local
+              Offset: 1
+              Scale: 1
+              Value: true
+            Position:
+              Alpha: 0.30000001192092896
+              Color: 204; 51; 204
+              Scale: 1
+              Value: true
+            Value: false
+          Enabled: false
+          Keep: 300
+          Name: Odom IMU
+          Position Tolerance: 0.10000000149011612
+          Shape:
+            Alpha: 1
+            Axes Length: 0.5
+            Axes Radius: 0.10000000149011612
+            Color: 255; 25; 0
+            Head Length: 0.30000001192092896
+            Head Radius: 0.10000000149011612
+            Shaft Length: 1
+            Shaft Radius: 0.05000000074505806
+            Value: Axes
+          Topic: /odometry/imu
+          Unreliable: false
+          Value: false
+        - Angle Tolerance: 0.10000000149011612
+          Class: rviz/Odometry
+          Covariance:
+            Orientation:
+              Alpha: 0.5
+              Color: 255; 255; 127
+              Color Style: Unique
+              Frame: Local
+              Offset: 1
+              Scale: 1
+              Value: true
+            Position:
+              Alpha: 0.30000001192092896
+              Color: 204; 51; 204
+              Scale: 1
+              Value: true
+            Value: false
+          Enabled: true
+          Keep: 300
+          Name: Odom GPS
+          Position Tolerance: 0.10000000149011612
+          Shape:
+            Alpha: 1
+            Axes Length: 0.699999988079071
+            Axes Radius: 0.10000000149011612
+            Color: 85; 255; 255
+            Head Length: 0.009999999776482582
+            Head Radius: 0.5
+            Shaft Length: 0.10000000149011612
+            Shaft Radius: 0.30000001192092896
+            Value: Arrow
+          Topic: /odometry/gps
+          Unreliable: false
+          Value: true
+        - Angle Tolerance: 0.10000000149011612
+          Class: rviz/Odometry
+          Covariance:
+            Orientation:
+              Alpha: 0.5
+              Color: 255; 255; 127
+              Color Style: Unique
+              Frame: Local
+              Offset: 1
+              Scale: 1
+              Value: true
+            Position:
+              Alpha: 0.30000001192092896
+              Color: 204; 51; 204
+              Scale: 1
+              Value: true
+            Value: false
+          Enabled: false
+          Keep: 300
+          Name: Odom lidar
+          Position Tolerance: 0.10000000149011612
+          Shape:
+            Alpha: 1
+            Axes Length: 0.25
+            Axes Radius: 0.10000000149011612
+            Color: 255; 25; 0
+            Head Length: 0.30000001192092896
+            Head Radius: 0.10000000149011612
+            Shaft Length: 1
+            Shaft Radius: 0.05000000074505806
+            Value: Axes
+          Topic: /lio_sam/mapping/odometry
+          Unreliable: false
+          Value: false
+      Enabled: false
+      Name: Odometry
+    - Class: rviz/Group
+      Displays:
+        - Alpha: 0.800000011920929
+          Autocompute Intensity Bounds: false
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: RGB8
+          Decay Time: 300
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 128
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: Velodyne
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: false
+          Size (Pixels): 2
+          Size (m): 0.019999999552965164
+          Style: Points
+          Topic: /points_raw
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: Intensity
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 0.7900000214576721
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: Reg Cloud
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /vgicp_sam/mapping/cloud_submap_NI
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 0.5
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 14.232841491699219
+            Min Value: -3.493661403656006
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 0
+          Color Transformer: Intensity
+          Decay Time: 20
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 255
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: LIDAR (Top/Deskewed)
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 1
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /vgicp_sam/deskew/cloud_deskewed_M
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 0.5
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 170; 85; 255
+          Color Transformer: Intensity
+          Decay Time: 20
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 136
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: LIDAR (Right/Deskewed)
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 1
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /vgicp_sam/deskew/cloud_deskewed_R
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 0.5
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 0; 127
+          Color Transformer: Intensity
+          Decay Time: 20
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 232
+          Min Color: 0; 0; 0
+          Min Intensity: 1
+          Name: LIDAR (Left/Deskewed)
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 1
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /vgicp_sam/deskew/cloud_deskewed_L
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: RGB8
+          Decay Time: 300
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 4096
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: LiDAR (RGB)
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /points_fused
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+      Enabled: true
+      Name: Point Cloud
+    - Class: rviz/Group
+      Displays:
+        - Alpha: 0.699999988079071
+          Autocompute Intensity Bounds: false
+          Autocompute Value Bounds:
+            Max Value: 37.870765686035156
+            Min Value: 0.388169527053833
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: Intensity
+          Decay Time: 500
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 128
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: Map (cloud)
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: false
+          Size (Pixels): 2
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /vgicp_sam/mapping/cloud_registered
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 0.699999988079071
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 21.632102966308594
+            Min Value: -5.964573383331299
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 176; 176; 176
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 15.100604057312012
+          Min Color: 0; 0; 0
+          Min Intensity: 0.014545874670147896
+          Name: Map (local)
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 2
+          Size (m): 0.10000000149011612
+          Style: Points
+          Topic: /vgicp_sam/mapping/map_local
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: x
+          Class: rviz/PointCloud2
+          Color: 181; 181; 181
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 202.47781372070312
+          Min Color: 0; 0; 0
+          Min Intensity: -108.00288391113281
+          Name: Map (global)
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 1
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /vgicp_sam/mapping/map_global
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Buffer Length: 300
+          Class: rviz/Path
+          Color: 0; 85; 127
+          Enabled: false
+          Head Diameter: 0.30000001192092896
+          Head Length: 0.20000000298023224
+          Length: 0.30000001192092896
+          Line Style: Billboards
+          Line Width: 0.10000000149011612
+          Name: Path (local)
+          Offset:
+            X: 0
+            Y: 0
+            Z: 1
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.10000000149011612
+          Shaft Length: 0.10000000149011612
+          Topic: /vgicp_sam/imu/path
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 85; 255; 255
+          Enabled: false
+          Head Diameter: 0.30000001192092896
+          Head Length: 0.20000000298023224
+          Length: 0.30000001192092896
+          Line Style: Billboards
+          Line Width: 0.019999999552965164
+          Name: Path (global)
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.10000000149011612
+          Shaft Length: 0.10000000149011612
+          Topic: /vgicp_sam/mapping/path
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 25; 255; 0
+          Enabled: false
+          Head Diameter: 0.30000001192092896
+          Head Length: 0.20000000298023224
+          Length: 0.30000001192092896
+          Line Style: Billboards
+          Line Width: 0.05000000074505806
+          Name: Path (RTKGPS)
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.10000000149011612
+          Shaft Length: 0.10000000149011612
+          Topic: /vgicp_sam/mapping/path
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 2.177748680114746
+            Min Value: -0.4722919762134552
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 170; 255; 255
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 341
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: GTSAM NODE
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 30
+          Size (m): 0.30000001192092896
+          Style: Spheres
+          Topic: /vgicp_sam/mapping/trajectory
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 43.82209014892578
+            Min Value: -27.479084014892578
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: AxisColor
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 15.100604057312012
+          Min Color: 0; 0; 0
+          Min Intensity: 0.014545874670147896
+          Name: GTSAM LC
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 2
+          Size (m): 0.30000001192092896
+          Style: Flat Squares
+          Topic: /ndt_sam/mapping/icp_loop_closure_history_cloud
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /vgicp_sam/mapping/loop_closure_constraints
+          Name: GTSAM LC CONST
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Alpha: 0.5
+          Cell Size: 100
+          Class: rviz/Grid
+          Color: 85; 85; 255
+          Enabled: false
+          Line Style:
+            Line Width: 0.029999999329447746
+            Value: Lines
+          Name: Grid
+          Normal Cell Count: 0
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Plane: XY
+          Plane Cell Count: 200
+          Reference Frame: <Fixed Frame>
+          Value: false
+        - Class: rviz/Camera
+          Enabled: false
+          Image Rendering: background and overlay
+          Image Topic: /Logitech_BRIO/image_rect_color
+          Name: Camera
+          Overlay Alpha: 0.5
+          Queue Size: 2
+          Transport Hint: compressed
+          Unreliable: false
+          Value: false
+          Visibility:
+            Mapping:
+              GTSAM LC: true
+              GTSAM LC CONST: true
+              GTSAM NODE: true
+              Grid: true
+              Map (cloud): true
+              Map (global): true
+              Map (local): true
+              Path (RTKGPS): true
+              Path (global): true
+              Path (local): true
+              Value: true
+            Odometry:
+              "": true
+              Value: true
+            Point Cloud:
+              "": true
+              Value: true
+            Value: true
+            links:
+              TF: true
+              Value: true
+              base_link: true
+              map: true
+          Zoom Factor: 1
+      Enabled: true
+      Name: Mapping
+  Enabled: true
+  Global Options:
+    Background Color: 0; 0; 0
+    Default Light: true
+    Fixed Frame: odom
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 42.427886962890625
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: -0.28496891260147095
+        Y: 0.3287988305091858
+        Z: 0.7330373525619507
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.009999999776482582
+      Pitch: 0.4497973918914795
+      Target Frame: base_link
+      Value: Orbit (rviz)
+      Yaw: 0.7031652927398682
+    Saved: ~
+Window Geometry:
+  Camera:
+    collapsed: false
+  Displays:
+    collapsed: false
+  Height: 1563
+  Hide Left Dock: false
+  Hide Right Dock: true
+  QMainWindow State: 000000ff00000000fd0000000400000000000001cc000005b6fc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000007000fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a0049006d006100670065000000002e000001340000000000000000fb000000100044006900730070006c0061007900730100000046000005b6000000f500fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730000000286000000a70000007000fffffffb0000000c00430061006d006500720061000000072b000000e70000001700fffffffb0000000c00430061006d006500720061030000008a00000431000007aa000005760000000100000111000007c9fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a005600690065007700730000000046000007c9000000c000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004b000000040fc0100000002fb0000000800540069006d00650000000000000004b00000000000000000fb0000000800540069006d006501000000000000045000000000000000000000096d000005b600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: true
+  Width: 2880
+  X: 2728
+  Y: 820
