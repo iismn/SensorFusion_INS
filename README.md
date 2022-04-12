@@ -3,7 +3,7 @@
 ## <div align=left>Repository Information</div>  
 - Sensor Fusion with GPS, IMU with tightly-coupled method. Algorithm is performed with GTSAM 4.x and IMU Pre-integration.  
 - Initial Release (v 1.0)
-- Fix Safety Rule IMU under 100Hz (v 1.2)
+- Safety Rule IMU under 100Hz / KITTI, ComplexUrbanData Config Add (v 1.2)
 
 ## <div align=left>Fusion Ability</div>  
 #### GPS-IMU
